@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd">
+	
+	<!-- 使Spring Security支持相应的方法注解 
+	<global-method-security pre-post-annotations="enabled"/>
+	-->
+	
+	<!-- 启用JSR-250规范的注解 
+	<global-method-security jsr250-annotations="enabled"/>
+	-->
+	
+	
+	<!-- 利用Spring Security AOP定义的切面和连接点实现 功能可能最强大
+	<global-method-security secured-annotations="enabled">
+		
+		 存在一些问题，无法实现安全约束，有待解决
+		<protect-pointcut access="ROLE_USER" expression="execution(* com.packtpub.springsecurity.dao.IProductDao.getCategories(..)) &amp;&amp; args()"/>
+		<protect-pointcut access="ROLE_ADMIN" expression="execution(* com.packtpub.springsecurity.service.I*Service.*(..))"/>
+		
+		
+	</global-method-security>
+	-->
+	<!-- 在该配置中不能使用 access-decision-manager-ref="unanimousBased" 
+	
+		原因可能是Voter机制不同
+	-->
+	<http auto-config="true" use-expressions="true" >
+		
+		<!-- 
+		<session-management session-fixation-protection="none"/>
+		 -->
+		
+		<session-management>
+			<concurrency-control max-sessions="1" expired-url="/login.do?error=expired"/>
+		</session-management>
+		
+		<!-- 为了使自定义的验证页面能够使用，不用事先验证，这里必须给予所有用户不用验证就能访问登陆验证页面
+			，注意下面两句配置信息的顺序
+			
+			requires-channel="https" 使用SSL
+		 -->
+		<!-- Basic Access Denied -->
+		<access-denied-handler error-page="/accessDenied.do"/>
+		
+		<intercept-url pattern="/home.do" access="permitAll" requires-channel="https"/>
+		<intercept-url pattern="/registration.do" access="permitAll" requires-channel="https"/>
+		<intercept-url pattern="/login.do" access="permitAll" requires-channel="https"/>
+		<intercept-url pattern="/account/*.do" 
+			access="hasRole('ROLE_USER') and fullyAuthenticated" requires-channel="https"/>	
+		<intercept-url pattern="/*" access="hasRole('ROLE_USER')" requires-channel="https"/>
+		<!-- 对于特殊的HTTP端口进行声明 -->
+		<port-mappings>
+			<port-mapping http="8088" https="8445"/>
+		</port-mappings>
+		
+		<!-- 使用自定义的登陆验证页面 -->
+		<form-login login-page="/login.do" authentication-failure-url="/login.do?error=true"/>
+		<!--
+				 the request for /j_spring_security_logout is intercepted by the
+				o.s.s.web.authentication.logout.LogoutFilter
+		 -->
+		 <!--  Spring Security默认登出
+		<logout invalidate-session="true"
+			logout-success-url="/"	
+			logout-url="/j_spring_security_logout"/>
+		-->
+		<!-- logout中属性会被拦截注入到相关的方法中,其中登出连接的url要跟
+			logout-url中的值一致
+		 -->
+		<logout invalidate-session="true"
+			logout-success-url="/"	
+			logout-url="/logout"/>
+		<!-- Remember-Me机制 
+			引用扩展的TokenBasedRememberMeServices的Bean,实现自定义的Remember-Me
+			<remember-me key="jbcpPetStore" services-ref="ipTokenBasedRememberMeServicesBean"/>
+		-->
+		<remember-me key="jbcpPetStore" token-validity-seconds="3600" data-source-ref="dataSource"/>
+		
+		<!-- 使用自定义的ip过滤器 在FilterSecurityInterceptor使用之前-->
+		<custom-filter ref="ipFilter" before="FILTER_SECURITY_INTERCEPTOR"/>
+		
+		<!-- 一个比较牵强的单点登陆实现 
+		<custom-filter ref="requestHeaderFilter" before="FORM_LOGIN_FILTER"/>
+		-->
+	</http>
+	<!-- access-decision-manager-ref 引用决策 -->
+	<!--  
+	<http auto-config="true" access-decision-manager-ref="unanimousBased">
+		<intercept-url pattern="/*" access="ROLE_USER"/>
+	</http>
+	-->
+	<!-- AuthenticationManager支持一个或多个的AuthenticationProvider 
+		<authentication-provider> 默认会根据配置信息实例化包装实现DaoAuthenticationProvider
+		DaoAuthenticationProvider 是AuthenticationProvider接口的一个实现，它委托UserDetailsService接口的实现
+		UserDetailsService职责是：返回一个UserDetails的实现
+		
+		其中：
+			user-service 对应UserDetailsService
+			user	对应UserDetails
+	-->
+	
+	<authentication-manager alias="authenticationManager">
+		<authentication-provider user-service-ref="customJdbcDaoImpl">
+			<password-encoder ref="passwordEncoder">
+				<salt-source ref="saltSource"/>
+			</password-encoder>
+		</authentication-provider>
+	</authentication-manager>
+
+</beans:beans>

@@ -1,0 +1,149 @@
+package com.mvc.security;
+
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.security.authentication.dao.SaltSource;
+import org.springframework.security.authentication.encoding.PasswordEncoder;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
+import org.springframework.transaction.annotation.Transactional;
+
+
+public class CustomJdbcDaoImpl extends JdbcUserDetailsManager implements IUserOperator{
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+	@Autowired
+	private SaltSource saltSource;
+	
+	@Override
+	public UserDetails loadUserByUsername(String username)
+			throws UsernameNotFoundException, DataAccessException {
+		// TODO Auto-generated method stub
+		return super.loadUserByUsername(username);
+	}
+	
+	public void changePassword(String username, String password) {
+//		getJdbcTemplate().update(
+//				"UPDATE USERS SET PASSWORD = ? WHERE USERNAME = ?",
+//				password, username);
+		// Ch 4 After password encoder and salt exercise
+		UserDetails user = loadUserByUsername(username);
+		
+		String encodedPassword = passwordEncoder.encodePassword(password, saltSource.getSalt(user));
+		getJdbcTemplate().update(
+			"UPDATE USERS SET PASSWORD = ? WHERE USERNAME = ?",
+			encodedPassword, username);
+//		Query query = sessionFactory.getCurrentSession().createQuery("from Users where username =:username");
+//		query.setString("username", username);
+//		Users users = (Users) query.list().get(0);
+//		users.setPassword(encodedPassword);
+//		sessionFactory.getCurrentSession().save(users);
+		
+	}
+
+	// Ch 4 SaltedUser exercise
+	@Override
+	protected UserDetails createUserDetails(String username,
+			UserDetails userFromUserQuery,
+			List<GrantedAuthority> combinedAuthorities) {
+        String returnUsername = userFromUserQuery.getUsername();
+        
+        if (!isUsernameBasedPrimaryKey()) {
+            returnUsername = username;
+        }
+
+        return new SaltedUser(returnUsername, userFromUserQuery.getPassword(), userFromUserQuery.isEnabled(),
+                true, true, true, combinedAuthorities, ((SaltedUser) userFromUserQuery).getSalt());
+	}
+
+	@Override
+	protected List<UserDetails> loadUsersByUsername(String username) {
+        return getJdbcTemplate().query(getUsersByUsernameQuery(), new String[] {username}, new RowMapper<UserDetails>() {
+            public UserDetails mapRow(ResultSet rs, int rowNum) throws SQLException {
+                String username = rs.getString(1);
+                String password = rs.getString(2);
+                boolean enabled = rs.getBoolean(3);
+                String salt = rs.getString(4);
+                return new SaltedUser(username, password, enabled, true, true, true, AuthorityUtils.NO_AUTHORITIES, salt);
+            }
+        });
+	}
+	
+	
+	@Transactional
+	public void createUser(String username, String password, String email,String groupName) {
+
+		getJdbcTemplate().update("insert into users(username, password, enabled, salt) values (?,?,true,RAND()*1000000000)", username, password);
+		getJdbcTemplate().update("insert into group_members(group_id, username) select id,? from groups where group_name=?", username,groupName);		
+		
+		
+	}
+	
+	
+	@Override
+	public boolean isValidOldPassword(UserDetails user, String checkedPassword) {
+		String encodePassword = passwordEncoder.encodePassword(checkedPassword, saltSource.getSalt(user));
+		return encodePassword.equals(user.getPassword());
+	}
+	
+
+	
+	public List<User> findAllUser(){
+		
+		List<User> users =new ArrayList<User>();
+		
+		System.err.println((User) loadUserByUsername("guest"));
+		users.add((User) loadUserByUsername("guest"));
+		
+		return users;
+//		return 
+//		getJdbcTemplate().query("select username from user", new RowMapper<User>(){
+//
+//			@Override
+//			public User mapRow(final ResultSet rs ,final int rownum) throws SQLException {
+//				// TODO Auto-generated method stub
+//				return (User) loadUserByUsername(rs.getString("username"));
+//				
+//			}});
+	}
+	/**
+	@Override
+	public void updateUser(UserDetails user) {
+		super.updateUser(user);
+	}
+	*/
+	
+//	@Transactional
+//	//only for Admin
+//	public void createAdmin(String username, String password, String email) {
+//		
+//		getJdbcTemplate().update("insert into users(username, password, enabled, salt) values (?,?,true,RAND()*1000000000))", username, password);
+//		getJdbcTemplate().update("insert into group_members(group_id, username) select id,? from groups where group_name ='Administrators'", username);		
+//	}
+
+	
+	public boolean userLived(String username) {
+		List<String> usernames = getJdbcTemplate().queryForList("select username from users where username = ?", new String[]{username},String.class);
+		if(usernames == null || usernames.size() == 0){
+			return false;
+		}
+		
+		return true;
+	}
+
+	@Override
+	public void updateUser(User user) {
+		super.updateUser(user);
+	}
+}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-module
+  type="WEB"
+  name="SpringSecurity"
+  id="myeclipse.1386334134570"
+  context-root="/SpringSecurity"
+  j2ee-spec="6.0"
+  archive="SpringSecurity.war">
+  <attributes>
+    <attribute name="webrootdir" value="WebRoot" />
+  </attributes>
+</project-module>
+

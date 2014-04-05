@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	 xmlns:vld="http://www.springmodules.org/validation/bean/validator"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	 http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	 http://www.springframework.org/schema/aop 
+	 http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+	 http://www.springframework.org/schema/tx
+	 http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+	 http://www.springframework.org/schema/context
+	 http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	 http://www.springframework.org/schema/mvc 
+     http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
+     
+	<!--
+		 为了给添加@Transactional注解的方法启用声明式的事务管理
+		 默认情况下，它会查找名为transactionManager的事务管理器，
+		 因此必须用这个名称声明HibernateTransactionManager实例.
+		 HibernateTransactionManager需要设置会话工厂属性，它会为这个会话工厂打开的会话进行事务管理
+	 -->
+	<tx:annotation-driven/>
+	
+	<aop:aspectj-autoproxy/>
+	
+	<!-- 
+		利用 <context:component-scan>,可以使Spring Ioc容器在base-package指定的包中进行扫描，并根据类中注解进行加载配置
+		
+	-->
+	
+	 
+	 <!-- 属性文件位置 -->
+    <context:property-placeholder location="classpath:jdbc.properties" /> 
+	
+	<bean id="dataSource"
+		class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName"
+			value="${jdbc.driverClassName}">
+		</property>
+		<property name="url" 
+			value="${jdbc.url}">
+		</property>
+		<property name="username" value="${jdbc.username}"></property>
+		<property name="password" value="${jdbc.password}"></property>
+		
+	</bean>
+	
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource">
+			<ref local="dataSource"/>
+		</property>
+	</bean>
+	
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="dataSource">
+			<ref bean="dataSource" />
+		</property>
+		<!-- 在指定包里扫描实体类 -->
+		<property name="packagesToScan">
+			<list>
+				<value>com.mvc.entity</value>
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">
+					org.hibernate.dialect.MySQLDialect
+				</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				<!-- Hibernate缓存配置 这里使用hibernate内置默认的缓存技术EhCache-->
+				<prop key="hibernate.cache.use_query_cache">true</prop>
+				<prop key="hibernate.cache.use_second_level_cache">true</prop>
+				<prop key="hibernate.cache.provider_class">org.hibernate.cache.EhCacheProvider</prop>
+				
+				<prop key="hibernate.cache.provider_configuration_file_resource_path">
+					/ehcache.xml
+				</prop>
+				
+			</props>
+		</property>
+	</bean>
+	
+	
+	
+	<bean id="transactionManager" 
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"/>
+	</bean>
+	
+	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+   		<property name="basenames">
+   			<value>messages,domain-messages</value>
+   		</property>
+   </bean>
+   
+   
+   <bean class="com.mvc.security.DatabasePasswordSecurerBean" init-method="secureDatabase" depends-on="dataSource">
+		<property name="dataSource" ref="dataSource"/>	
+	</bean>
+   
+   <bean class="org.springframework.security.authentication.encoding.ShaPasswordEncoder"
+		id="passwordEncoder"/>
+	<!-- 
+		saltSource 
+		利用username作为saltSource,不太可靠
+	
+	<bean class="org.springframework.security.authentication.dao.ReflectionSaltSource" id="saltSource">
+		<property name="userPropertyToUse" value="username"/>
+	</bean>
+	-->
+	<bean class="org.springframework.security.authentication.dao.ReflectionSaltSource" id="saltSource">
+	
+		<!-- Salted User -->
+		<property name="userPropertyToUse" value="salt"/>
+	</bean>
+	
+   <bean id="customJdbcDaoImpl" class="com.mvc.security.CustomJdbcDaoImpl">
+   		<property name="dataSource" ref="dataSource"/>
+   		<property name="enableGroups" value="true"/>
+   		<property name="enableAuthorities" value="false"/>
+   		<property name="usersByUsernameQuery">
+   			<value>
+   				select username,password,enabled,salt from users where username =?
+   			</value>
+   		</property>
+   </bean>
+   
+   <!-- 限制管理员IP -->
+   <bean id="ipFilter" class="com.mvc.security.IPRoleAuthenticationFilter">
+		<property name="targetRole" value="ROLE_ADMIN"/>
+		<property name="allowedIPAddresses">
+			<list>
+				<value>1.2.3.4</value>
+			</list>
+		</property>
+	</bean>
+  <!--  
+   <bean id="validatorFactory" class="org.springmodules.validation.commons.DefaultValidatorFactory">
+   		<property name="validationConfigLocations">
+   			<list>
+   				<value>WEB-INF/validator-rules.xml</value>
+   				<value>WEB-INF/validation.xml</value>
+   			</list>
+   		</property>
+   </bean>
+    
+   <bean id="beanValidator" class="org.springmodules.validation.commons.DefaultBeanValidator">
+   		<property name="validatorFactory" ref="validatorFactory"/>
+   </bean>
+   -->
+   
+	 <mvc:annotation-driven/>
+	  <context:component-scan base-package="com.mvc"/>
+	 
+</beans>
