@@ -7,18 +7,21 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 @Entity
 @Table(catalog="petstore",name="inventory")
 @NamedQueries({
 	@NamedQuery(name = "findInventoryByType", query = "from Inventory where type=:inventory")
 })
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Inventory implements java.io.Serializable{
 
 	/**

@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
+//import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -57,6 +57,7 @@ public class LoginLogoutController extends BaseController{
 	// Ch 6 Access Denied
 	@RequestMapping(method=RequestMethod.GET, value="/accessDenied.do")
 	public void accessDenied(ModelMap model, HttpServletRequest request) {
+		@SuppressWarnings("deprecation")
 		AccessDeniedException ex = (AccessDeniedException) request.getAttribute(AccessDeniedHandlerImpl.SPRING_SECURITY_ACCESS_DENIED_EXCEPTION_KEY);
 		StringWriter sw = new StringWriter();
 		model.addAttribute("errorDetails", ex.getMessage());

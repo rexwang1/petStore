@@ -3,8 +3,10 @@ package com.mvc.security;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
@@ -17,6 +19,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.mvc.entity.UserManager;
 
 
 public class CustomJdbcDaoImpl extends JdbcUserDetailsManager implements IUserOperator{
@@ -59,6 +63,7 @@ public class CustomJdbcDaoImpl extends JdbcUserDetailsManager implements IUserOp
 			List<GrantedAuthority> combinedAuthorities) {
         String returnUsername = userFromUserQuery.getUsername();
         
+      
         if (!isUsernameBasedPrimaryKey()) {
             returnUsername = username;
         }
@@ -99,23 +104,29 @@ public class CustomJdbcDaoImpl extends JdbcUserDetailsManager implements IUserOp
 	
 
 	
-	public List<User> findAllUser(){
+	public List<UserManager> findAllUser(){
 		
-		List<User> users =new ArrayList<User>();
+		return 
+		getJdbcTemplate().query("select username from users", new RowMapper<UserManager>(){
+
+			@Override
+			public UserManager mapRow(final ResultSet rs ,final int rownum) throws SQLException {
+				// TODO Auto-generated method stub
+				 User user= (User)loadUserByUsername(rs.getString("username"));
+				 
+				 return getUser(user);
+			}});
+	}
+	
+	private UserManager getUser(User user){
 		
-		System.err.println((User) loadUserByUsername("guest"));
-		users.add((User) loadUserByUsername("guest"));
+		Set<String> authorities = new HashSet<String>();
+		for(GrantedAuthority authority : user.getAuthorities()){
+			authorities.add(authority.getAuthority());
+		}
 		
-		return users;
-//		return 
-//		getJdbcTemplate().query("select username from user", new RowMapper<User>(){
-//
-//			@Override
-//			public User mapRow(final ResultSet rs ,final int rownum) throws SQLException {
-//				// TODO Auto-generated method stub
-//				return (User) loadUserByUsername(rs.getString("username"));
-//				
-//			}});
+		UserManager userManager = new UserManager();
+		return userManager;
 	}
 	/**
 	@Override

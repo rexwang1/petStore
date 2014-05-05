@@ -1,8 +1,14 @@
 package com.mvc.web.controller;
 
+import java.beans.PropertyEditorSupport;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.stereotype.Controller;
@@ -16,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.mvc.entity.Commoditiez;
+import com.mvc.entity.PaymentType;
 import com.mvc.entity.ShopList;
 import com.mvc.service.ICommoditiezService;
 import com.mvc.service.IShopListService;
@@ -30,6 +37,12 @@ public class ShopListController extends BaseController {
 	@Autowired
 	private ICommoditiezService commoditiezService;
 	
+	
+
+	protected final transient Log log = LogFactory.getLog(ShopListController.class);
+//	@Autowired
+//	private IUserInfoService userInfoService;
+	
 	@RequestMapping(value="/shopList/index.do")
 	public ModelAndView loadAll(@ModelAttribute ResultFilter<ShopList> rf){
 		shopListService.listShopList(rf);
@@ -40,22 +53,37 @@ public class ShopListController extends BaseController {
 	
 	//---------------清单操作--------------------------
 	@RequestMapping(method = RequestMethod.GET,value="/shopList/addShopList.do")
-	public void addShopList(){
+	public void addShopList(Model model){
 		
 	}
 	
+	@RequestMapping(method = RequestMethod.GET,value="/shopList/updateShopList.do")
+	public void updateShopList(@RequestParam("id") long id,Model model){
+		model.addAttribute("shopList", shopListService.getShopList(id));
+	}
+	
+	@RequestMapping(method = RequestMethod.POST,value="/shopList/updateShopList.do")
+	public String updateShopList(@ModelAttribute ShopList shopList,@ModelAttribute PaymentType paymentType,
+			@RequestParam("cardNo") long cardNO){
+		shopList.setUserInfo(getUserInfo());
+		shopListService.updateShopList(shopList, paymentType,cardNO);
+		return "/shopList/index.do";
+	}
+	
 	@RequestMapping(method = RequestMethod.POST,value="/shopList/saveShopList.do")
-	public String saveShopList(@ModelAttribute ShopList shoplist){
+	public String saveShopList(@ModelAttribute ShopList shoplist,@ModelAttribute PaymentType paytype){
+		shoplist.setPaymentType(paytype);
 		shopListService.addShopList(shoplist);
 		return "/shopList/index.do";
 	}
 	
-	//实际将清单的status属性改为0
 	@RequestMapping("/shopList/deleteShopList.do")
-	public void deleteShopList(@RequestParam("id") String id){
-		ShopList shopList = shopListService.getShopList(Long.valueOf(id));
-		shopList.setStatus(0);
-		shopListService.updateShopList(shopList);
+	public void deleteShopList(@RequestParam("id") long id){
+		ShopList shopList = shopListService.findOne(id);
+		
+		shopListService.deleteShopList(shopList);
+		
+		
 	}
 	
 	//--------------------清单的商品操作----------
@@ -73,21 +101,56 @@ public class ShopListController extends BaseController {
 	
 	//购买商品
 	@RequestMapping(method = RequestMethod.POST,value="/shopList/saveCom.do")
-	public String saveCommod(@RequestParam("comid") String comid){
+	public void saveCommod(@RequestParam("comid") long comid,@RequestParam("num") int num,
+			HttpServletResponse response) throws IOException{
 		//shopListService.updateShopList(shopList);
-		Commoditiez commoditiez = commoditiezService.findCommod(Long.valueOf(comid));
-		shopListService.addShopCommoditiez(getUsername(), commoditiez);
-		return "/shopList/index.do";
+		
+		
+		Commoditiez commoditiez = commoditiezService.findCommod(comid);
+		long id = shopListService.addShopCommoditiez(getUsername(),num, commoditiez);
+		response.getWriter().print("{\"num\":\"" +
+				id+"\"}");
+		
 	}
 	
+//	//购买商品
+//	@RequestMapping(method = RequestMethod.POST,value="/shopList/saveCom.do")
+//	public String saveCommod(@RequestParam("comid") long comid,@RequestParam("num") int num,
+//			HttpServletResponse response) throws IOException{
+//		//shopListService.updateShopList(shopList);
+//		
+//		
+//		Commoditiez commoditiez = commoditiezService.findCommod(comid);
+//		long id = shopListService.addShopCommoditiez(getUsername(),num, commoditiez);
+//		response.getWriter().print("{\"num\":\"" +
+//				id+"\"}");
+//		return "/shopList/index.do";
+//	}
+	
+	
 	@RequestMapping(value="/shopList/deleteCom.do")
-	public void delete(@RequestParam("id") String id,@RequestParam("comid") String comid){
-//		ShopList shopList = new ShopList();
-//		shopList.setId(Long.valueOf(id));
-//		shopListService.deleteShopList(shopList);
-		Commoditiez commoditiez =new Commoditiez();
-		commoditiez.setItemNo(Long.valueOf(comid));
-		shopListService.deleteShopCommodites(Long.valueOf(id), commoditiez);
+	public void delete(@RequestParam("id") long id,@RequestParam("comid") long comid,HttpServletResponse response){
+
+		try {
+			Commoditiez commoditiez =new Commoditiez();
+			commoditiez.setItemNo(comid);
+			shopListService.deleteShopCommodites(id, commoditiez);
+			response.getWriter().print("{\"del\":\"true\"}");
+		} catch (Exception e) {
+			log.debug(e);
+			e.printStackTrace();
+		}
+	}
+	
+	
+//	@RequestMapping(value="/shopList/deleteShopList.do")
+//	public String cancelCom(){
+//		return "redirect:/shopList/index.do";
+//	}
+	
+	@RequestMapping(value="/shopList/cancel.do")
+	public String cancelCom(){
+		return "redirect:/shopList/index.do";
 	}
 	
 	
@@ -115,6 +178,24 @@ public class ShopListController extends BaseController {
 		SimpleDateFormat dateFormate =new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		dateFormate.setLenient(false);
 		binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormate, true));
+		binder.registerCustomEditor(Long.class, new PropertyEditorSupport(){
+			@Override
+			public String getAsText() {
+
+				return getAsText().toString();
+			}
+			
+			@Override
+			public void setAsText(String text) throws IllegalArgumentException {
+				System.out.println("------------------------------");
+				if(text == null || text.trim().equals("")){
+					setValue(0L);
+				}else{
+					setValue(Long.parseLong(text));
+				}
+				
+			}
+		});
 	}
 	
 }

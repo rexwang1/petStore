@@ -9,8 +9,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.ModelAttribute;
-public class BaseController {
 
+import com.mvc.entity.UserInfo;
+import com.mvc.service.IUserInfoService;
+public class BaseController {
+	
+	@Autowired
+	private IUserInfoService userInfoService;
+	
 	protected Authentication getAuthentication(){
 		return SecurityContextHolder.getContext().getAuthentication();
 	}
@@ -45,6 +51,8 @@ public class BaseController {
 		return message;
 	}
 	
+	
+	
 	//得到用户名
 	protected String getUsername(){
 		Object principal=SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -55,4 +63,10 @@ public class BaseController {
 		
 		return username;
 	}
+	
+	//得到用户信息
+	protected UserInfo getUserInfo(){
+		return userInfoService.findByUsername(getUsername());
+	}
+	
 }

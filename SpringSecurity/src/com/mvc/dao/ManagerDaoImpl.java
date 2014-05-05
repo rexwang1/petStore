@@ -3,6 +3,7 @@ package com.mvc.dao;
 import java.io.Serializable;
 import java.util.List;
 
+import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,9 @@ public class ManagerDaoImpl implements ManagerDao{
 	@Override
 	public void update(Object o) {
 		// TODO Auto-generated method stub
+		o=sessionFactory.getCurrentSession().merge(o);
 		sessionFactory.getCurrentSession().update(o);
+		
 	}
 
 	
@@ -58,6 +61,7 @@ public class ManagerDaoImpl implements ManagerDao{
 	@Override
 	public List<?> getListForPage(String entityName, int startIndex,
 			int numPage) {
+		
 		Query query = sessionFactory.getCurrentSession().createQuery("from "+entityName);
 		query.setFirstResult(startIndex);
 		query.setMaxResults(numPage);
@@ -70,8 +74,9 @@ public class ManagerDaoImpl implements ManagerDao{
 	public int getCount(String entityName) {
 		// TODO Auto-generated method stub
 		String hql = "select count(*) from " + entityName;
-		
-		return (Integer) sessionFactory.getCurrentSession().createQuery(hql).list().get(0);
+		Query query = sessionFactory.getCurrentSession().createQuery(hql);
+		query.setCacheable(true);
+		return ((Number)query.iterate().next()).intValue();
 	}
 
 	@Transactional(readOnly=true)
@@ -96,6 +101,15 @@ public class ManagerDaoImpl implements ManagerDao{
 		return sessionFactory.getCurrentSession().getNamedQuery(nameQuery);
 	}
 	
-	
+	@Transactional(readOnly=true)
+	@Override
+	public Criteria queryCondition(Class<?> cla,int startIndex,
+			int numPage){
+		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(cla);
+		criteria.setFirstResult(startIndex);
+		criteria.setMaxResults(numPage);
+		criteria.setCacheable(true);
+		return criteria;
+	}
 	
 }

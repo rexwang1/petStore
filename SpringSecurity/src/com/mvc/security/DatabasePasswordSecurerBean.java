@@ -38,6 +38,7 @@ public class DatabasePasswordSecurerBean extends JdbcDaoSupport {
 				UserDetails user = userDetailsService.loadUserByUsername(username);
 				String encodedPassword = passwordEncoder.encodePassword(password, saltSource.getSalt(user));
 //				String encodedPassword = passwordEncoder.encodePassword(password, null);
+				
 				getJdbcTemplate().update("update users set password = ? where username = ?", 
 						encodedPassword, 
 						username);

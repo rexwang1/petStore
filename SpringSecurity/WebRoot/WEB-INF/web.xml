@@ -89,4 +89,46 @@
   	<filter-name>OpenSessionInView</filter-name>
   	<url-pattern>/*</url-pattern>
   </filter-mapping>
+  
+  
+  <!-- 
+  	SimplePageCachingFilter EhCache页面缓存
+  	利用拦截器，这里主要对首页进行缓存
+  -->
+  <filter>
+  	<filter-name>indexCacheFilter</filter-name>
+  	<filter-class>net.sf.ehcache.constructs.web.filter.SimplePageCachingFilter</filter-class>
+  </filter>
+  
+  <filter-mapping>
+  	<filter-name>indexCacheFilter</filter-name>
+  	<url-pattern>/WEB-INF/views/home.jsp</url-pattern>
+  </filter-mapping>
+  	
+  <!-- 
+  	SimplePageFragmentCachingFilter EhCache页面部分缓存
+  	利用拦截器，这里主要对首页进行缓存
+  	
+  <filter>
+  	<filter-name>fragmentCache</filter-name>
+  	<filter-class>net.sf.ehcache.constructs.web.filter.SimplePageFragmentCachingFilter</filter-class>
+ 	
+ 	<init-param>
+ 		<param-name>suppressStackTraces</param-name>
+ 		<param-value>false</param-value>
+ 	</init-param>
+ 	
+ 	<init-param>
+ 		<param-name>cacheName</param-name>
+ 		<param-value>fragmentCache</param-value>
+ 	</init-param>
+  </filter>
+  
+  <filter-mapping>
+  	<filter-name>fragmentCache</filter-name>
+  	<url-pattern>/WEB-INF/views/home.jsp</url-pattern>
+  	<dispatcher>INCLUDE</dispatcher>
+  </filter-mapping>
+  
+ --> 
 </web-app>

@@ -58,13 +58,15 @@ public class UserInfoServiceImpl implements IUserInfoService {
 		// TODO Auto-generated method stub
 		Query query = managerDao.getNameQuery("findUserInfoByUserName");
 		query.setString("userInfo", username);
-		@SuppressWarnings("unchecked")
-		List<UserInfo> userInfos = query.list();
-		UserInfo userInfo = null;
-		if(!userInfos.isEmpty()){
-			userInfo =(UserInfo) userInfos.get(0);
-		}
-		return userInfo;
+		
+		return (UserInfo) query.uniqueResult();
+//		@SuppressWarnings("unchecked")
+//		List<UserInfo> userInfos = query.list();
+//		UserInfo userInfo = null;
+//		if(!userInfos.isEmpty()){
+//			userInfo =(UserInfo) userInfos.get(0);
+//		}
+//		return userInfo;
 	}
 
 	

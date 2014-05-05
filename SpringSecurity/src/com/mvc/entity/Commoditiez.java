@@ -3,19 +3,15 @@ package com.mvc.entity;
 import java.io.Serializable;
 import java.util.Date;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 /**
  * 商品信息表，主要记录商品ID、品牌、厂家、有效期、用途和原材料
@@ -26,7 +22,7 @@ import javax.persistence.TemporalType;
 @Entity
 @Table(catalog="petstore",name="commodities")
 
-
+@Cache(usage=CacheConcurrencyStrategy.READ_WRITE)
 public class Commoditiez implements Serializable {
 
 	/**
@@ -74,7 +70,6 @@ public class Commoditiez implements Serializable {
 		this.standard = standard;
 	}
 	
-	@Temporal(TemporalType.TIME)
 	public Date getExpiryDate() {
 		return expiryDate;
 	}

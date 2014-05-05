@@ -54,8 +54,22 @@
 		<intercept-url pattern="/home.do" access="permitAll" requires-channel="https"/>
 		<intercept-url pattern="/registration.do" access="permitAll" requires-channel="https"/>
 		<intercept-url pattern="/login.do" access="permitAll" requires-channel="https"/>
+		
+		<intercept-url pattern="/shopList/updateShopList.do" 
+			access="hasRole('ROLE_ADMIN') and fullyAuthenticated" requires-channel="https"/>	
+		
 		<intercept-url pattern="/account/*.do" 
 			access="hasRole('ROLE_USER') and fullyAuthenticated" requires-channel="https"/>	
+			
+		<intercept-url pattern="/commoditiez/addCommod.do" 
+			access="hasRole('ROLE_ADMIN') and fullyAuthenticated" requires-channel="https"/>	
+		
+		<intercept-url pattern="/inventory/addInventory.do" 
+			access="hasRole('ROLE_ADMIN') and fullyAuthenticated" requires-channel="https"/>	
+		
+		<intercept-url pattern="/userManager/*.do" 
+			access="hasRole('ROLE_ADMIN') and fullyAuthenticated" requires-channel="https"/>	
+		
 		<intercept-url pattern="/*" access="hasRole('ROLE_USER')" requires-channel="https"/>
 		<!-- 对于特殊的HTTP端口进行声明 -->
 		<port-mappings>

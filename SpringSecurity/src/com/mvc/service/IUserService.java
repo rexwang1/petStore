@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.User;
 
+import com.mvc.entity.UserManager;
+
 /**
  * Provides functionality related to user management.
  *  
@@ -28,7 +30,7 @@ public interface IUserService {
 	
 	public User getUser(String username);
 	
-	public List<User> findAllUser();
+	public List<UserManager> findAllUser();
 	
 	public void updateUser(User user);
 	

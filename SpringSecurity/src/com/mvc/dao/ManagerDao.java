@@ -3,6 +3,7 @@ package com.mvc.dao;
 import java.io.Serializable;
 import java.util.List;
 
+import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.SessionFactory;
 
@@ -30,5 +31,7 @@ public interface ManagerDao {
 	public SessionFactory getSessionFactory();
 	
 	public void setSessionFactory(SessionFactory sessionFactory);
+	Criteria queryCondition(Class<?> cla, int startIndex, int numPage);
+	
 	
 }

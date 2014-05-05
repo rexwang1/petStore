@@ -2,7 +2,6 @@ package com.mvc.service;
 
 import java.util.List;
 
-import com.mvc.entity.ShopList;
 import com.mvc.entity.UserInfo;
 
 public interface IUserInfoService {

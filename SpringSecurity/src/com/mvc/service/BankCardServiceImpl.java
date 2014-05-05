@@ -2,6 +2,7 @@ package com.mvc.service;
 
 import java.util.List;
 
+import org.hibernate.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +46,15 @@ public class BankCardServiceImpl implements IBankCardService {
 
 	public void setManagerDao(ManagerDao managerDao) {
 		this.managerDao = managerDao;
+	}
+
+	@Override
+	public BankCard findCard(long cardNo, String name) {
+		Query query = managerDao.getNameQuery("findCard");
+		query.setLong("cardNo", cardNo);
+		query.setString("name", name);
+		
+		return (BankCard) query.uniqueResult();
 	}
 	
 	

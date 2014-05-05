@@ -11,9 +11,10 @@
 <p>
 	我们为你精心准备很多用品给你的心爱的宠物
 </p>
-<form action="/inventory/list.do" method="post">
-	<table>  
-	<thead>
+<a href="<%=request.getContextPath()%>/inventory/addInventory.do">加入新的库存商品</a><br/>
+<form action="<%=request.getContextPath()%>/inventory/list.do" method="post">
+	<table border="1">  
+	<thead style="color:red;">
 	<tr>
 	  
     <td>编号</td>  
@@ -23,6 +24,7 @@
     <td>类型</td>
     <td>适用范围</td>
     <td>原料</td>
+    
     <td></td>
     <td></td>
 	</tr>
@@ -35,27 +37,41 @@
     <td><c:out value="${inventory.brand}"/></td>  
     <td><c:out value="${inventory.name}"/></td>
     <td><c:out value="${inventory.factory}"/></td> 
-    <td><c:out value="${inventory.type}"/></td>
+    <td>
+    	<c:if test="${inventory.type == 'dog'}">狗狗用品</c:if>
+    	<c:if test="${inventory.type == 'cat'}">猫猫用品</c:if>
+    	<c:if test="${inventory.type == 'aquarium'}">水族用品</c:if>
+    </td>
     <td><c:out value="${inventory.suit}"/></td>
     <td><c:out value="${inventory.material}"/></td>
     <!-- 详情主要显示原料，连接商品库表显示库存和进货日期-->
     <td>
-    	<c:url value="<%=request.getContextPath()%>/commodities/detail.do?id=${inventory.id}">
-    	详情
-    	</c:url>
+    	<c:choose>
+    	<c:when  test="${!empty inventory.commoditiezs}">
+    		<a href="<%=request.getContextPath()%>/commoditiez/detail.do?id=${inventory.id}">
+    		详情
+    		</a>
+    	</c:when>
+    	<c:otherwise>
+    		<font color="gray">库存为空</font>
+    	</c:otherwise>
+    	</c:choose>
     </td>  
     <td>
-    	<c:url value="<%=request.getContextPath()%>/commodities/addInventCommid.do?id=${inventory.id}">
-    	进货
-    	</c:url>
+    	<a href="<%=request.getContextPath()%>/commoditiez/addCommod.do?id=${inventory.id}">
+    		进货
+    	</a>
+    	
     </td>
 </tr>
 </c:forEach>
 </tbody>
 </table>
-</form>
+
+<c:if test="${!empty rf.items}">
 <paging:paging size="${rf.currentPage}" total="${rf.pageCount}" 
    curr="${rf.pageSize}" href="/inventory/list.do"/>
-
+</c:if>
 <jsp:include page="../common/footer.jsp"/>
-
+</form>
+<br/>

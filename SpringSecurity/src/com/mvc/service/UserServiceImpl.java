@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
+import com.mvc.entity.UserManager;
 import com.mvc.security.IUserOperator;
 
 @Service("userService")
@@ -16,6 +17,7 @@ public class UserServiceImpl implements IUserService {
 	IUserOperator userOperator;
 	
 	private final static String GROUP_NAME="Users";
+	
 	
 	@Override
 	
@@ -39,10 +41,10 @@ public class UserServiceImpl implements IUserService {
 	}
 
 	@Override
-	public List<User> findAllUser() {
-		// TODO Auto-generated method stub
-		System.err.println((User) userOperator.loadUserByUsername("guest"));
-		return null;
+	public List<UserManager> findAllUser() {
+		// TODO Auto-generated metho)d stub
+		return userOperator.findAllUser();
+		
 //				jdbcDao.findAllUser();
 	}
 

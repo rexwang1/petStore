@@ -9,7 +9,7 @@
 </jsp:include>
 <h1>个人中心</h1>
 <ul>
-	<li><a href="<%=request.getContextPath()%>/userInfo/updateInfo.do?username=<%=request.getUserPrincipal().getName()%>">完善个人信息</a></li>
+	<li><a href="<%=request.getContextPath()%>/userInfo/updateInfo.do">完善个人信息</a></li>
 </ul>
 <ul>
 	<li><a href="<%=request.getContextPath()%>/account/changePassword.do">修改密码</a></li>

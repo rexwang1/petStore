@@ -1,5 +1,6 @@
 package com.mvc.service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -9,11 +10,16 @@ import org.hibernate.Query;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.mvc.dao.ManagerDao;
+import com.mvc.entity.BankCard;
 import com.mvc.entity.Commoditiez;
+import com.mvc.entity.Inventory;
 import com.mvc.entity.PaymentType;
 import com.mvc.entity.ShopList;
+import com.mvc.entity.ShopListLog;
+import com.mvc.entity.ShopListLogKey;
 import com.mvc.entity.UserInfo;
 import com.mvc.util.ResultFilter;
 
@@ -26,6 +32,9 @@ public class ShopListServiceImpl implements IShopListService{
 	@Autowired
 	private IUserInfoService userInfoService;
 	
+//	@Autowired
+//	private IShopListLogService shopListLogService;
+//	
 	@Override
 	public void addShopList(ShopList shopList) {
 		// TODO Auto-generated method stub
@@ -41,7 +50,23 @@ public class ShopListServiceImpl implements IShopListService{
 
 	@Override
 	public void deleteShopList(ShopList shopList) {
-		// TODO Auto-generated method stub
+		
+		String username = shopList.getUserInfo().getUsername();
+		List<Commoditiez> commodtiezs = shopList.getCommoditiezs();
+		if(commodtiezs != null){
+			ShopListLogKey key = null;
+			for(Commoditiez commod : commodtiezs)
+			{
+				key = new ShopListLogKey(shopList.getId(), commod.getItemNo(), 0);
+				ShopListLog log = new ShopListLog();
+				log.setShopListLogKey(key);
+				log.setAmount(0);
+				log.setUsername(username);
+				managerDao.add(log);
+			}
+		}
+		
+		shopList.setUserInfo(null);
 		managerDao.delete(shopList);
 	}
 
@@ -87,25 +112,96 @@ public class ShopListServiceImpl implements IShopListService{
 		return (ShopList) managerDao.findOne(ShopList.class, id);
 	}
 
+	@Transactional
 	@Override
-	public void addShopCommoditiez(String username,Commoditiez commodites) {
-		// TODO Auto-generated method stub
-		ShopList shopList = this.findSuitShopList(username, 1);
+	public long addShopCommoditiez(String username,int num,Commoditiez commodites) {
+
+		
+		ShopList shopList = this.getSuitShopList(username, 1);
+		ShopListLogKey logKey = new ShopListLogKey(shopList.getId(), commodites.getItemNo(), 1);
+		
+		ShopListLog log = (ShopListLog) managerDao.findOne(ShopListLog.class, logKey);
+		
+		if(log == null)
+		{
+			log = new ShopListLog();
+			log.setAmount(num);
+			log.setShopListLogKey(logKey);
+			log.setUsername(username);
+		}else{
+			log.setAmount(log.getAmount() + num);
+		}
+		
+		double comMoney = commodites.getPrice() * num;
+		
+		
+		shopList.setAmount(shopList.getAmount() + num);
+		shopList.setMoney(shopList.getMoney() + comMoney);
 		
 		List<Commoditiez> commoditesList = shopList.getCommoditiezs();
 		
 		if(commoditesList == null){
 			commoditesList = new ArrayList<Commoditiez>();
 		}
+		
+		Inventory inventory = commodites.getInventory();
+		inventory.setAmount(inventory.getAmount() - num);
+		
 		commoditesList.add(commodites);
-		managerDao.update(shopList);
+		
+		shopList.setCommoditiezs(commoditesList);
+		
+		//增加日志记录
+		log.setShopListLogKey(new ShopListLogKey(shopList.getId(), commodites.getItemNo(), 1));
+		log.setAmount(num);
+		log.setUsername(username);
+		
+		managerDao.update(inventory);
+		managerDao.add(shopList);
+		managerDao.add(log);
+		
+		return shopList.getId();
 	}
 
+	@Transactional
 	@Override
 	public void deleteShopCommodites(long id,Commoditiez commoditez) {
 		// TODO Auto-generated method stub
 		ShopList shopList = (ShopList) managerDao.findOne(ShopList.class, id);
-		shopList.getCommoditiezs().remove(commoditez);
+		List<Commoditiez> commods = shopList.getCommoditiezs();
+		Commoditiez removeCommod = new Commoditiez();
+		for(int i=0; i<commods.size();i++){
+			if(commods.get(i).getItemNo() == commoditez.getItemNo()){
+				removeCommod = commods.remove(i);
+				break;
+			}
+		}
+		
+		
+		shopList.setCommoditiezs(commods);
+		
+		ShopListLogKey key = new ShopListLogKey();
+		key.setShopId(id);
+		key.setComId(removeCommod.getItemNo());
+		key.setStatus(1);
+		
+		ShopListLog log = (ShopListLog) managerDao.findOne(ShopListLog.class, key);
+		
+		Inventory inventory = removeCommod.getInventory();
+		inventory.setAmount(inventory.getAmount() + log.getAmount());
+		
+		shopList.setAmount(shopList.getAmount() - log.getAmount());
+		double money = shopList.getMoney() -log.getAmount() * removeCommod.getPrice();
+		shopList.setMoney(money);
+		
+		//增加撤销状态的订单日志
+		key.setStatus(0);
+		log.setShopListLogKey(key);
+		log.setAmount(0);
+		managerDao.add(log);
+		managerDao.update(inventory);
+		managerDao.update(shopList);
+		
 	}
 
 	@Override
@@ -113,6 +209,7 @@ public class ShopListServiceImpl implements IShopListService{
 		// TODO Auto-generated method stub
 		ShopList shopList = (ShopList) managerDao.findOne(ShopList.class, id);
 		shopList.setPaymentType(payType);
+		managerDao.update(shopList);
 	}
 
 	@Override
@@ -176,6 +273,10 @@ public class ShopListServiceImpl implements IShopListService{
 		// TODO Auto-generated method stub
 		UserInfo userInfo = userInfoService.findByUsername(username);
 		
+		if(userInfo == null)
+		{
+			return null;
+		}
 		Query query = managerDao.getNameQuery("findBySuit");
 		query.setEntity("userInfo", userInfo);
 		query.setInteger("status", 1);
@@ -185,6 +286,7 @@ public class ShopListServiceImpl implements IShopListService{
 		List<ShopList> shopLists = query.list();
 		
 		if(shopLists == null || shopLists.isEmpty()){
+			
 			return null;
 		}
 		return shopLists.get(0);
@@ -197,7 +299,25 @@ public class ShopListServiceImpl implements IShopListService{
 	public void setUserInfoService(IUserInfoService userInfoService) {
 		this.userInfoService = userInfoService;
 	}
-	
+
+	@Override
+	public ShopList findOne(long id) {
+		ShopList shopList = (ShopList) managerDao.findOne(ShopList.class, id);
+		return shopList;
+	}
+
+	@Override
+	public void updateShopList(ShopList shopList, PaymentType payment,long cardNo) {
+		if(cardNo > 0){
+			BankCard card = (BankCard)managerDao.findOne(BankCard.class, cardNo);
+			payment.setCard(card);
+		}
+		
+		shopList.setPaymentType(payment);
+		managerDao.update(shopList);
+		
+	}
+
 	
 	
 }

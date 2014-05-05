@@ -17,8 +17,6 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -74,7 +72,6 @@ public class ShopList implements Serializable {
 		this.id = id;
 	}
 
-	@Temporal(TemporalType.TIME)
 	public Date getCreateDate() {
 		return createDate;
 	}
@@ -119,7 +116,6 @@ public class ShopList implements Serializable {
 	}
 	
 
-	@Temporal(TemporalType.TIME)
 	public Date getPreDeliveryTime() {
 		return preDeliveryTime;
 	}
@@ -128,7 +124,6 @@ public class ShopList implements Serializable {
 		this.preDeliveryTime = preDeliveryTime;
 	}
 
-	@Temporal(TemporalType.TIME)
 	public Date getReceiveTime() {
 		return receiveTime;
 	}
@@ -153,7 +148,7 @@ public class ShopList implements Serializable {
 		this.consigneePhone = consigneePhone;
 	}
 
-	@OneToMany()
+	@OneToMany(cascade={CascadeType.ALL})
 	@JoinTable(name="shoplist_comdities",joinColumns={@JoinColumn(name="shoplist_id")},
 			inverseJoinColumns={@JoinColumn(name="item_no")})
 	public List<Commoditiez> getCommoditiezs() {

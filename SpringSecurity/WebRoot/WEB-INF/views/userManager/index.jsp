@@ -5,54 +5,113 @@
 <!--  
 	<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 -->
-
-<jsp:include page="<%=request.getContextPath()%>/views/common/header.jsp">
-	<jsp:param value="Register" name="pageTitle"/>
+ <%
+String path = request.getContextPath();
+String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
+%>
+<jsp:include page="../common/header.jsp">
+	<jsp:param value="UserManager" name="pageTitle"/>
 </jsp:include>
+
+<script type="text/javascript" src="<%=basePath%>js/jquery-1.11.0.js">
+ </script>
+<script type="text/javascript">
+
+
+function showGroupName(id){
+	if($(this).is(":checked")){
+		$("#select"+id).attr('disabled',true);
+		
+	}else{
+		$("#select"+id).attr('disabled',false);
+		
+	}
+}
+
+function updateBatch(){
+	$("input:checked").each(function(index){
+		var usernameid = "username" + index;
+		var groupNameid = "select"+index;
+		
+		var username = $("#"+usernameid).text().trim();
+		var groupName = $("#"+groupNameid).find(':selected').val().trim();
+		
+		$.ajax({
+			type : "POST",
+			url : "<%=request.getContextPath()%>/userManager/update.do?username=" + username
+			+ "&groupName=" +groupName
+		});
+		
+		window.location.reload();
+	});
+}
+
+function pullBackBatch(){
+	$("input:checked").each(function(index){
+		var username = $("#username"+index).text().trim();
+		if(username == '')return;
+		
+		var r = confirm('你确定将这些用户拉黑吗？');
+		if(r == true){
+			$.ajax({
+				type : "POST",
+				url : "<%=request.getContextPath()%>/userManager/pullBack.do?username=" + username
+			});
+			
+			window.location.reload();
+		}
+	});
+}
+
+</script>
 <h1>User Manager</h1>
 <p>
 	用户权限信息
 </p>
 <form action="" method="post">
-	<table>
+	<div>
+		<input type="button"  value="更新" onclick="updateBatch();"/>
+		<input type="button"  value="拉黑" onclick="pullBackBatch();"/>
+	</div>
+		<input type="hidden" value="fuck" id="test"/>
+	<hr/>
+	<table border ="1">
 		<tr>
+			<td>选择</td>
 			<td>用户名</td>
 			<td>密码</td>
-			<td>权限</td>
-			<td>是否有效</td>
-			<td>用户是否锁定</td>
-			<td>用户是否过期</td>
-			<td>验证是否过期</td>
+			<td>角色</td>
+			<td></td>
 		</tr>
-	<c:forEach items="users" var="user">
-		<tr>
-			<td>${user.username}</td>
-			<td>${user.password}</td>
-			<td>
-				<ul>
-					<c:forEach items="user.authorities" var="gantedAuthority">
-						<li>
-							<c:if test="${gantedAuthority.authority == 'ROLE_USER'}">
-								普通用户
-							</c:if>
-							<c:if test="${gantedAuthority.authority == 'ROLE_ADMIN'}">
-								管理员
-							</c:if>
-						</li>
-					</c:forEach>
-				</ul>
+	<c:forEach items="${userManagers}" var="userManager" varStatus="item">
+		<tr id="tr${item.index}">
+			<td><input type="checkbox" id="${item.index}" onchange="showGroupName('<c:out value="${item.index}"/>')"/></td>
+			<td id="username${item.index}">
+				<c:out value="${userManager.username}"/>
 			</td>
+			<td>${userManager.password}</td>
 			<td>
-				${user.enabled}
+				
+					<select  id="select${item.index}" disabled="disabled">
+						<c:if test="${userManager.role == 'Users'}">
+							<option value="Users" selected="selected">普通用户</option>
+							<option value="Administrators">管理员</option>
+						</c:if>
+						
+						<c:if test="${userManager.role == 'Administrators'}">
+							<option value="Users">普通用户</option>
+							<option value="Administrators" selected="selected">管理员</option>
+						</c:if>
+					</select>
+				
 			</td>
+			
 			<td>
-				${user.accountNonExpired}
+			
 			</td>
-			<td>${user.accountNonLocked}</td>
-			<td>${user.credentialsNonExpired}</td>
 		</tr>
 	</c:forEach>
 	</table>
 </form>
 
-<jsp:include page="<%=request.getContextPath()%>/views/common/footer.jsp"/>
+<jsp:include page="../common/footer.jsp"/>

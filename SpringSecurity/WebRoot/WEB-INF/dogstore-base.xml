@@ -57,6 +57,12 @@
 		</property>
 	</bean>
 	
+	<bean id="userRoleService" class="com.mvc.service.UserRoleServiceImpl">
+		<property name="jdbcTemplate">
+			<ref local="jdbcTemplate"/>
+		</property>
+	</bean>
+	
 	<bean id="sessionFactory"
 		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
 		<property name="dataSource">
@@ -138,7 +144,7 @@
 		<property name="targetRole" value="ROLE_ADMIN"/>
 		<property name="allowedIPAddresses">
 			<list>
-				<value>1.2.3.4</value>
+				<value>127.0.0.1</value>
 			</list>
 		</property>
 	</bean>

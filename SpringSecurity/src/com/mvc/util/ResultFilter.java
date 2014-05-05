@@ -5,7 +5,10 @@ import java.util.List;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
+@Cache(usage= CacheConcurrencyStrategy.READ_ONLY)
 public class ResultFilter<T> implements Serializable{  
 	  
     private static final long serialVersionUID = 5472321653620726832L;  

@@ -2,14 +2,20 @@ package com.mvc.entity;
 
 import java.io.Serializable;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 @Entity
 @Table(catalog="petstore",name="bankcard")
+@NamedQueries({
+	@NamedQuery(name = "findCard", query = "from BankCard where cardNo=:cardNo and name=:name")
+})
 public class BankCard implements Serializable {
 
 	/**
@@ -31,12 +37,15 @@ public class BankCard implements Serializable {
 	public void setId(long id) {
 		this.id = id;
 	}
+	
+	@Column(unique=true)
 	public long getCardNo() {
 		return cardNo;
 	}
 	public void setCardNo(long cardNo) {
 		this.cardNo = cardNo;
 	}
+	
 	public String getName() {
 		return name;
 	}

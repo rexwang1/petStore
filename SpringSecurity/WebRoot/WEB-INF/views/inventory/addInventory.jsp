@@ -10,45 +10,45 @@
 </jsp:include>
 
 <h1></h1>
-<form:form action="" method="post">
+<form action="<%=request.getContextPath()%>/inventory/addInventory.do" method="post">
 	<label for="brand">品牌</label>:
-	<form:input path="brand" id="brand"/>
+	<input name="brand" id="brand"/>
 	<br/>
 	
 	<label for="name">名字</label>:
-	<form:input path="name" id="name"/>
+	<input  name="name" id="name"/>
 	<br/>
 	
 	<label for="factory">生产厂家</label>:
-	<form:input path="factory" id="factory"/>
+	<input name="factory" id="factory"/>
 	<br/>
 	
 	<label for="type">类型</label>:
-	<form:select path="type" id="type"> 
-		<form:option value="-" label="--请选择--"/>
-		<form:options items="${typeList}"/>
-	</form:select>
-	<br/>
-	<!-- 设置为当天
-	<label for="purchaseDate">进货时间</label>:
-	<form:input path="purchaseDate" id="purchaseDate"/>
-	<br/>
-	 -->
-	<label for="suit">适用范围</label>:
-	<form:textarea path="suit" id="suit"/>
+	
+	<select name="type" id="type"> 
+		<option value="dog">狗狗用品</option>
+		<option value="cat">猫猫用品</option>
+		<option value="aquarium">水族用品</option>
+	</select>
 	<br/>
 	
+	<label for="amount">数量</label>:
+	<input type="text" name="amount"/> <br/>
+	
+	<label for="suit">适用范围</label>:
+	<textarea name="suit" id="suit"></textarea>
+	<br/>
 	
 	<label for="effect">功效</label>:
-	<form:textarea path="effect" id="effect"/>
+	<textarea name="effect" id="effect"></textarea>
 	<br/>
 	
 	
 	<label for="material">原料</label>:
-	<form:textarea path="material" id="material"/>
+	<textarea name="material" id="material"></textarea>
 	<br/>
 	
 	<input type="submit" value="保存"/>
-</form:form>
+</form>
 
 <jsp:include page="../common/footer.jsp"/>

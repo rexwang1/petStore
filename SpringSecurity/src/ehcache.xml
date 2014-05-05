@@ -51,8 +51,39 @@
 		timeToIdleSeconds="300"
 		timeToLiveSeconds="600"
 		memoryStoreEvictionPolicy="LFU"/>
-		
+	
+	<cache name="com.mvc.entity.UserInfo"
+			maxElementsInMemory="100000"
+			eternal="false"
+			timeToIdleSeconds="600"
+			timeToLiveSeconds="800"
+			overflowToDisk="true"
+			diskPersistent="false"/>
+			
 	<cache name="com.mvc.entity.ShopList"
+			maxElementsInMemory="100000"
+			eternal="false"
+			timeToIdleSeconds="600"
+			timeToLiveSeconds="600"
+			overflowToDisk="true"
+			diskPersistent="false"/>
+	
+	<cache name="com.mvc.entity.Commoditiez"
+			maxElementsInMemory="100000"
+			eternal="false"
+			timeToIdleSeconds="600"
+			timeToLiveSeconds="1200"
+			overflowToDisk="true"
+			diskPersistent="false"/>
+			
+	<cache name="com.mvc.util.ResultFilter"
+			maxElementsInMemory="100000"
+			eternal="false"
+			timeToIdleSeconds="600"
+			timeToLiveSeconds="600"
+			overflowToDisk="true"
+			diskPersistent="false"/>
+	<cache name="com.mvc.util.Inventory"
 			maxElementsInMemory="100000"
 			eternal="false"
 			timeToIdleSeconds="600"

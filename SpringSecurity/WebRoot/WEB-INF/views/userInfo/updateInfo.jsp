@@ -5,21 +5,20 @@
  <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
  <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
  <%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt_rt" %>
- 
- <script type="text/javascript" src="/js/jquery.js"></script>
- <script type="text/javascript">
-	$(document).ready(function(){
-		
-	});
+  <%
+String path = request.getContextPath();
+String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
+%> 
+ <script type="text/javascript" src="<%=basePath%>js/jquery-1.11.0.js"></script>
+
+<script type="text/javascript">
 	
-	function checkForm(){
-		var birthday = $('#birthday').val();
-	
-	}
 </script>
 <jsp:include page="../common/header.jsp">
 	<jsp:param value="User Index" name="pageTitle"/>
 </jsp:include>
+
+
 <h1>个人中心</h1>
 <p>请在这里完善个人信息</p>
 

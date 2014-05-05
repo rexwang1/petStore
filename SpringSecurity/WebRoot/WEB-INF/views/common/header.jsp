@@ -1,11 +1,13 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt_rt" %>
+
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <c:url value="/styles/style.css" var="cssUrl"/>
 <link rel="stylesheet" type="text/css" href="${cssUrl}"/>
+
 <title>JBCP Pets: ${pageTitle}</title>
 </head>
 <body>
@@ -19,8 +21,7 @@
 	</div>
 </sec:authorize>
 <ul>
-	<c:url value="/userManager/index.do" var="managerUserUrl"/>
-	<li><a href="${managerUserUrl}">Test</a></li>
+
 	<c:url value="/" var="homeUrl"/>
 	<li><a href="${homeUrl}"><fmt:message key="header.url.home"/></a></li>
 	
@@ -40,11 +41,6 @@
 		<c:url value="/logout" var="logoutUrl"/>
 		<li><a href="${logoutUrl}"><fmt:message key="header.url.logout"/></a></li>
 	</sec:authorize>
-	<sec:authorize url="/account/home.do" method="GET">
-		<c:url var="accountUrl" value="/account/home.do"/>
-		<li><a href="${accountUrl}"><fmt:message key="header.url.account"/></a></li>
-	</sec:authorize>
-	
 	
 	<sec:authorize ifAnyGranted="ROLE_USER">
 	<c:url value="/userInfo/home.do" var="userInfoUrl"/>
@@ -52,13 +48,13 @@
 	</sec:authorize>
 	
 	<sec:authorize ifAnyGranted="ROLE_ADMIN">
-		<c:url value="/commoditiez/home.do"	var="adminCommod"/>
-		<li><a href="${adminCommod}"><fmt:message key="header.url.comManager"/></a></li>
+		<c:url value="/inventory/list.do" var="inventorylist"/>
+		<li><a href="${inventorylist}"><fmt:message key="header.url.invenManager"/></a></li>
 	</sec:authorize>
-	
-	<c:url value="/wishlist/home.do" var="wishlistUrl"/>
-	<li><a href="${wishlistUrl}"><fmt:message key="header.url.shoplist"/></a></li>
-	
+	<sec:authorize ifAnyGranted="ROLE_ADMIN">
+	<c:url value="/userManager/index.do" var="userManagerUrl"/>
+	<li><a href="${userManagerUrl}"><fmt:message key="header.url.userManager"/></a></li>
+	</sec:authorize>
 </ul>
 <br/>
 </div>

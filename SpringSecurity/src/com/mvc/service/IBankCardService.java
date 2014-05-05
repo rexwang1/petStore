@@ -10,4 +10,6 @@ public interface IBankCardService {
 	public void updateBankCard(BankCard bankCard);
 	public void deleteBankCard(BankCard bankCard);
 	public List<BankCard> findAll();
+	
+	public BankCard findCard(long cardNo,String name);
 }

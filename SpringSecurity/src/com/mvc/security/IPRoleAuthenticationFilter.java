@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 public class IPRoleAuthenticationFilter extends OncePerRequestFilter {
 	private String targetRole;
 	private List<String> allowedIPAddresses;
@@ -36,7 +37,7 @@ public class IPRoleAuthenticationFilter extends OncePerRequestFilter {
 			if(shouldCheck && allowedIPAddresses.size() > 0) {
 				boolean shouldAllow = false;
 				for (String ipAddress : allowedIPAddresses) {
-					if(req.getRemoteAddr().equals(ipAddress)) {
+					if(getIpAddr(req).equals(ipAddress)) {
 						shouldAllow = true;
 						break;
 					}
@@ -79,6 +80,29 @@ public class IPRoleAuthenticationFilter extends OncePerRequestFilter {
 	 */
 	public void setAllowedIPAddresses(List<String> allowedIPAddresses) {
 		this.allowedIPAddresses = allowedIPAddresses;
+	}
+	
+	
+	private String getIpAddr(HttpServletRequest request){
+		
+		String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_CLIENT_IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        
+		return ip;
 	}
 }
 

@@ -2,6 +2,7 @@ package com.mvc.service;
 
 import java.util.List;
 
+import com.mvc.entity.BankCard;
 import com.mvc.entity.Commoditiez;
 import com.mvc.entity.PaymentType;
 import com.mvc.entity.ShopList;
@@ -12,12 +13,12 @@ public interface IShopListService {
 	public void addShopList(ShopList shopList);
 	public void updateShopList(ShopList shopList);
 	public void deleteShopList(ShopList shopList);
-	
+	public ShopList findOne(long id);
 	public List<ShopList> findAll();
 	public int getShopListCount();
 	public int getCommoditiezCount(long shopId);
 	
-	public void addShopCommoditiez(String username,Commoditiez commodites);
+	public long addShopCommoditiez(String username,int num,Commoditiez commodites);
 	public void deleteShopCommodites(long id,Commoditiez commodites);
 	
 	public void addPayType(long id,PaymentType payType);
@@ -35,7 +36,7 @@ public interface IShopListService {
 	public List<Commoditiez> getCommoditiezForPage(long id,int startIndex,int numPage);
 	public void listCommodites(long id,ResultFilter<Commoditiez> rf);
 	
-	
+	public void updateShopList(ShopList shopList,PaymentType payment,long cardNo);
 
 	/**
 	 * 寻找合适的清单 根据用户名、状态来找

@@ -10,8 +10,8 @@
 	我们为你精心准备很多用品给你的心爱的宠物
 </p>
 <ul>
-	<li><a href="listPets.do?species=dog">Dogs</a></li>
-	<li><a href="listPets.do?species=cat">Cats</a></li>
+	<li><a href="<%=request.getContextPath()%>/commoditiez/list.do?type=dog">Dogs</a></li>
+	<li><a href="<%=request.getContextPath()%>/commoditiez/list.do?type=cat">Cats</a></li>
 </ul>
 
 <h2></h2>
